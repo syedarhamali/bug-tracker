@@ -38,4 +38,8 @@ app.use("/bug-report", bugReportRoutes);
 app.use("/widget", widgetRoutes);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+if (process.env.VERCEL !== "1") {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+module.exports = app;
