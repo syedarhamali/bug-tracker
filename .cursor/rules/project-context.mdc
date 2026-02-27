@@ -1,0 +1,45 @@
+---
+description: Bug Tracker project structure, stack, and conventions for future context
+alwaysApply: true
+---
+
+# Bug Tracker – Project Context
+
+## What This Repo Is
+
+- **Product**: Embeddable bug-report widget. Site owners add a script tag; visitors get a floating button that opens a popup form (title, description, email). Submissions go to the backend and can be forwarded to **Slack** and/or **Trello** per-widget.
+- **Reference**: Patterns and structure were copied from `/Users/syedmuhammadarhamali/Documents/radium/widget` (Next.js dashboard + Express backend + embed script).
+
+## Repo Layout
+
+- **bug-tracker-backend/** – Express API (Node), MongoDB (Mongoose), JWT auth.
+- **bug-tracker-frontend/** – Next.js App Router dashboard (auth, widget list, per-widget config: Slack/Trello, embed code, recent reports).
+
+## Backend (bug-tracker-backend)
+
+- **Entry**: `api/app.js` – Express app, CORS, `connectDB()`, routes mounted at `/auth`, `/widget-config`, `/bug-report`, `/widget`.
+- **Models**: `models/User.js`, `models/WidgetConfig.js` (widgetId, apiKey, Slack/Trello flags + credentials), `models/BugReport.js` (widgetId, title, description, pageUrl, extraData, status).
+- **Auth**: `routes/auth.js` – signup/login, bcrypt + JWT. `middleware/auth.js` – Bearer token required for `/widget-config`.
+- **Widget config**: `routes/widgetConfig.js` – CRUD + `GET /:id/reports` for a widget’s bug reports (all auth).
+- **Bug report**: `routes/bug-report.js` – public `POST /bug-report` with widgetId or apiKey; looks up WidgetConfig, saves BugReport, then calls Slack and/or Trello per config.
+- **Integrations**: `services/slack.js` (webhook POST), `services/trello.js` (create card with API key + token + list ID).
+- **Widget script**: `routes/widget.js` serves `GET /widget/script.js`; script file lives at `public/widget.js`. Script reads `data-widget-id` and `data-api-url` from its own tag, injects button + modal, POSTs to `{apiUrl}/bug-report`.
+- **Env**: `.env` / `.env.example` – `PORT`, `MONGODB_URI`, `JWT_SECRET`, `ALLOWED_ORIGINS` (comma-separated).
+
+## Frontend (bug-tracker-frontend)
+
+- **App Router**: `app/page.tsx` (landing), `app/(auth)/login/page.tsx`, `app/(auth)/signup/page.tsx`, `app/dashboard/layout.tsx` (header, auth check via localStorage token, logout), `app/dashboard/page.tsx` (widget list, “Add widget” modal), `app/dashboard/widget/[id]/page.tsx` (embed code copy, Slack/Trello toggles + fields, save, recent reports).
+- **Auth**: Token in `localStorage` (`bug_tracker_token`); `lib/api.ts` attaches `Authorization: Bearer` and exposes `authApi`, `widgetConfigApi`, `getEmbedScript(widgetId)`.
+- **Env**: `NEXT_PUBLIC_API_URL` (e.g. `http://localhost:5000`); used in `lib/api.ts` and for embed script’s `data-api-url` in `getEmbedScript`.
+
+## Conventions to Keep
+
+- Backend: CommonJS (`require`), no TypeScript. Use existing route/model/service pattern; new integrations = new service + call from `bug-report.js` after saving report.
+- Frontend: TypeScript, Tailwind, client components where needed (`"use client"`). No .md files unless the user asks. API base URL from env only.
+- Embed script: Vanilla JS, no build step; single file `public/widget.js`; must work when loaded on any host; identifier is `data-widget-id` or `data-api-key`; `data-api-url` is the backend origin for `/bug-report`.
+
+## Quick Run
+
+- Backend: `cd bug-tracker-backend && npm run dev` (needs MongoDB at `MONGODB_URI`).
+- Frontend: `cd bug-tracker-frontend && npm run dev`. Set `NEXT_PUBLIC_API_URL` to backend URL.
+- Embed: After adding a widget in dashboard, use the generated script tag (includes `data-widget-id` and `data-api-url`) on any page to test.
