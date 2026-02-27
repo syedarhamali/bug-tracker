@@ -14,6 +14,7 @@ const widgetConfigSchema = new mongoose.Schema(
     trelloApiKey: { type: String, default: null },
     trelloToken: { type: String, default: null },
     trelloListId: { type: String, default: null },
+    trelloBoardId: { type: String, default: null },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },

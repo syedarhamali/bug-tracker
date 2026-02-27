@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
+const axios = require("axios");
 const WidgetConfig = require("../models/WidgetConfig");
 const BugReport = require("../models/BugReport");
 const auth = require("../middleware/auth");
+const TRELLO_KEY = process.env.TRELLO_API_KEY;
 
 router.get("/", auth, async (req, res) => {
   try {
@@ -31,6 +33,57 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
+router.get("/:id/trello/boards", auth, async (req, res) => {
+  try {
+    const config = await WidgetConfig.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!config) return res.status(404).json({ error: "Widget not found" });
+    if (!config.trelloToken || !TRELLO_KEY) {
+      return res.status(400).json({ error: "Connect Trello first" });
+    }
+    const { data } = await axios.get(
+      `https://api.trello.com/1/members/me/boards?key=${TRELLO_KEY}&token=${config.trelloToken}&fields=name,id`
+    );
+    res.json({ data });
+  } catch (err) {
+    res.status(500).json({ error: err.response?.data || err.message });
+  }
+});
+
+router.post("/:id/test-slack", auth, async (req, res) => {
+  try {
+    const config = await WidgetConfig.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!config) return res.status(404).json({ error: "Widget not found" });
+    if (!config.slackWebhookUrl) return res.status(400).json({ error: "Add a Slack webhook first" });
+    const axios = require("axios");
+    await axios.post(
+      config.slackWebhookUrl,
+      { text: "✅ *Bug Tracker test* – If you see this, Slack is connected." },
+      { headers: { "Content-Type": "application/json" } }
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.response?.data?.message || err.message });
+  }
+});
+
+router.get("/:id/trello/lists", auth, async (req, res) => {
+  try {
+    const boardId = req.query.boardId;
+    if (!boardId) return res.status(400).json({ error: "boardId required" });
+    const config = await WidgetConfig.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!config) return res.status(404).json({ error: "Widget not found" });
+    if (!config.trelloToken || !TRELLO_KEY) {
+      return res.status(400).json({ error: "Connect Trello first" });
+    }
+    const { data } = await axios.get(
+      `https://api.trello.com/1/boards/${boardId}/lists?key=${TRELLO_KEY}&token=${config.trelloToken}&fields=name,id`
+    );
+    res.json({ data });
+  } catch (err) {
+    res.status(500).json({ error: err.response?.data || err.message });
+  }
+});
+
 router.get("/:id", auth, async (req, res) => {
   try {
     const config = await WidgetConfig.findOne({ _id: req.params.id, userId: req.user._id });
@@ -50,6 +103,7 @@ router.patch("/:id", auth, async (req, res) => {
     if (typeof req.body.trelloApiKey !== "undefined") updates.trelloApiKey = req.body.trelloApiKey || null;
     if (typeof req.body.trelloToken !== "undefined") updates.trelloToken = req.body.trelloToken || null;
     if (typeof req.body.trelloListId !== "undefined") updates.trelloListId = req.body.trelloListId || null;
+    if (typeof req.body.trelloBoardId !== "undefined") updates.trelloBoardId = req.body.trelloBoardId || null;
     if (req.body.name) updates.name = req.body.name;
     if (req.body.domain) updates.domain = req.body.domain.replace(/^https?:\/\//, "").split("/")[0];
 

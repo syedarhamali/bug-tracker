@@ -41,8 +41,18 @@ export interface WidgetConfig {
   trelloApiKey: string | null;
   trelloToken: string | null;
   trelloListId: string | null;
+  trelloBoardId?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TrelloBoard {
+  id: string;
+  name: string;
+}
+export interface TrelloList {
+  id: string;
+  name: string;
 }
 
 export interface BugReport {
@@ -90,6 +100,23 @@ export const widgetConfigApi = {
     api<{ data: BugReport[]; meta: { total: number; page: number; totalPages: number } }>(
       `/widget-config/${id}/reports?page=${page}&limit=${limit}`
     ),
+  trelloConnect: (widgetId: string) =>
+    api<{ redirectUrl: string }>("/integrations/trello/connect", {
+      method: "POST",
+      body: JSON.stringify({ widgetId }),
+    }),
+  trelloCallback: (state: string, token: string) =>
+    api<{ success: boolean; widgetId: string }>("/integrations/trello/callback", {
+      method: "POST",
+      body: JSON.stringify({ state, token }),
+      token: null,
+    }),
+  trelloBoards: (id: string) =>
+    api<{ data: TrelloBoard[] }>(`/widget-config/${id}/trello/boards`),
+  trelloLists: (id: string, boardId: string) =>
+    api<{ data: TrelloList[] }>(`/widget-config/${id}/trello/lists?boardId=${encodeURIComponent(boardId)}`),
+  testSlack: (id: string) =>
+    api<{ success: boolean }>(`/widget-config/${id}/test-slack`, { method: "POST" }),
 };
 
 export function getEmbedScript(widgetId: string): string {

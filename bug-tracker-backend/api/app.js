@@ -7,6 +7,7 @@ const authRoutes = require("../routes/auth");
 const widgetConfigRoutes = require("../routes/widgetConfig");
 const bugReportRoutes = require("../routes/bug-report");
 const widgetRoutes = require("../routes/widget");
+const integrationsRoutes = require("../routes/integrations");
 
 dotenv.config();
 const app = express();
@@ -34,6 +35,7 @@ app.get("/", (req, res) => res.json({ message: "Bug Tracker API running" }));
 
 app.use("/auth", authRoutes);
 app.use("/widget-config", widgetConfigRoutes);
+app.use("/integrations", integrationsRoutes);
 app.use("/bug-report", bugReportRoutes);
 app.use("/widget", widgetRoutes);
 

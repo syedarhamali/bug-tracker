@@ -26,8 +26,13 @@ export default function WidgetConfigPage() {
     trelloApiKey: "",
     trelloToken: "",
     trelloListId: "",
+    trelloBoardId: "",
   });
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [trelloBoards, setTrelloBoards] = useState<{ id: string; name: string }[]>([]);
+  const [trelloLists, setTrelloLists] = useState<{ id: string; name: string }[]>([]);
+  const [trelloConnecting, setTrelloConnecting] = useState(false);
+  const [slackTesting, setSlackTesting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -42,9 +47,22 @@ export default function WidgetConfigPage() {
           trelloApiKey: c.trelloApiKey || "",
           trelloToken: c.trelloToken || "",
           trelloListId: c.trelloListId || "",
+          trelloBoardId: (c as { trelloBoardId?: string }).trelloBoardId || "",
         });
         const { data } = await widgetConfigApi.reports(id);
         setReports(data);
+        if (c.trelloToken) {
+          try {
+            const b = await widgetConfigApi.trelloBoards(id);
+            setTrelloBoards(b.data || []);
+            if ((c as { trelloBoardId?: string }).trelloBoardId) {
+              const l = await widgetConfigApi.trelloLists(id, (c as { trelloBoardId?: string }).trelloBoardId!);
+              setTrelloLists(l.data || []);
+            }
+          } catch {
+            /* ignore */
+          }
+        }
       } catch {
         setConfig(null);
       } finally {
@@ -65,6 +83,7 @@ export default function WidgetConfigPage() {
         trelloApiKey: form.trelloApiKey || null,
         trelloToken: form.trelloToken || null,
         trelloListId: form.trelloListId || null,
+        trelloBoardId: form.trelloBoardId || null,
       });
       setMsg({ type: "ok", text: "Settings saved." });
     } catch (e) {
@@ -145,80 +164,184 @@ export default function WidgetConfigPage() {
         )}
 
         <div className="space-y-6">
-          <div>
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={form.sendToSlack}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, sendToSlack: e.target.checked }))
-                }
-                className="h-4 w-4 rounded border-slate-300"
-              />
-              <span className="font-medium text-slate-900 dark:text-slate-100">
-                Send to Slack
-              </span>
-            </label>
+          {/* Slack */}
+          <div className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={form.sendToSlack}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, sendToSlack: e.target.checked }))
+                  }
+                  className="h-4 w-4 rounded border-slate-300"
+                />
+                <span className="font-medium text-slate-900 dark:text-slate-100">
+                  Send to Slack
+                </span>
+              </label>
+              <a
+                href="https://api.slack.com/messaging/webhooks"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+              >
+                Get webhook in 3 steps →
+              </a>
+            </div>
             {form.sendToSlack && (
-              <input
-                type="url"
-                placeholder="https://hooks.slack.com/services/..."
-                value={form.slackWebhookUrl}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, slackWebhookUrl: e.target.value }))
-                }
-                className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-              />
+              <div className="mt-3 flex flex-wrap gap-2">
+                <input
+                  type="url"
+                  placeholder="Paste your Slack webhook URL here"
+                  value={form.slackWebhookUrl}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, slackWebhookUrl: e.target.value }))
+                  }
+                  className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                />
+                <button
+                  type="button"
+                  disabled={!form.slackWebhookUrl || slackTesting}
+                  onClick={async () => {
+                    if (!form.slackWebhookUrl) return;
+                    setSlackTesting(true);
+                    try {
+                      await widgetConfigApi.testSlack(id);
+                      setMsg({ type: "ok", text: "Test message sent to Slack." });
+                    } catch (e) {
+                      setMsg({ type: "err", text: e instanceof Error ? e.message : "Test failed" });
+                    } finally {
+                      setSlackTesting(false);
+                    }
+                  }}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium dark:border-slate-700"
+                >
+                  {slackTesting ? "Sending…" : "Send test"}
+                </button>
+              </div>
             )}
           </div>
 
-          <div>
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={form.sendToTrello}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, sendToTrello: e.target.checked }))
-                }
-                className="h-4 w-4 rounded border-slate-300"
-              />
-              <span className="font-medium text-slate-900 dark:text-slate-100">
-                Send to Trello
-              </span>
-            </label>
-            {form.sendToTrello && (
-              <div className="mt-2 space-y-2">
-                <input
-                  type="text"
-                  placeholder="Trello API Key"
-                  value={form.trelloApiKey}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, trelloApiKey: e.target.value }))
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                />
-                <input
-                  type="text"
-                  placeholder="Trello Token"
-                  value={form.trelloToken}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, trelloToken: e.target.value }))
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                />
-                <input
-                  type="text"
-                  placeholder="Trello List ID (e.g. 64a1b2c3d4e5f6789..."
-                  value={form.trelloListId}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, trelloListId: e.target.value }))
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                />
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Use a <strong>list</strong> ID, not the board ID. Board ID from your link is 69a0ec28… — that goes in the URL below. Get list IDs:{" "}
-                  <code className="rounded bg-slate-200 px-1 dark:bg-slate-700">GET https://api.trello.com/1/boards/69a0ec284e379fd86c2d8ed3/lists?key=YOUR_KEY&token=YOUR_TOKEN</code>
+          {/* Trello */}
+          <div className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
+            <span className="font-medium text-slate-900 dark:text-slate-100">
+              Send to Trello
+            </span>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Each widget can use a different Trello account. Connect this widget to the account (and board) you want.
+            </p>
+            {!config.trelloToken ? (
+              <div className="mt-3">
+                <button
+                  type="button"
+                  disabled={trelloConnecting}
+                  onClick={async () => {
+                    setTrelloConnecting(true);
+                    try {
+                      const { redirectUrl } = await widgetConfigApi.trelloConnect(id);
+                      window.location.href = redirectUrl;
+                    } catch (e) {
+                      setMsg({ type: "err", text: e instanceof Error ? e.message : "Failed to start" });
+                      setTrelloConnecting(false);
+                    }
+                  }}
+                  className="rounded-lg bg-[#0079bf] px-4 py-2 text-sm font-medium text-white hover:bg-[#026aa7] disabled:opacity-60"
+                >
+                  {trelloConnecting ? "Opening Trello…" : "Connect Trello (one click)"}
+                </button>
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  You’ll sign in to Trello; then pick a board and list for this widget.
                 </p>
+              </div>
+            ) : (
+              <div className="mt-3 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm text-green-600 dark:text-green-400">✓ Connected to Trello (this widget only)</p>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await widgetConfigApi.update(config._id, {
+                          trelloToken: null,
+                          trelloListId: null,
+                          trelloBoardId: null,
+                          sendToTrello: false,
+                        });
+                        const c = await widgetConfigApi.get(id);
+                        setConfig(c);
+                        setForm((f) => ({
+                          ...f,
+                          trelloToken: "",
+                          trelloListId: "",
+                          trelloBoardId: "",
+                          sendToTrello: false,
+                        }));
+                        setTrelloBoards([]);
+                        setTrelloLists([]);
+                        setMsg({ type: "ok", text: "Disconnected. Connect again to use a different Trello account." });
+                      } catch (e) {
+                        setMsg({ type: "err", text: e instanceof Error ? e.message : "Failed to disconnect" });
+                      }
+                    }}
+                    className="text-xs text-slate-500 underline hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+                  >
+                    Use a different Trello account
+                  </button>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-500">Board</label>
+                    <select
+                      value={form.trelloBoardId}
+                      onChange={async (e) => {
+                        const boardId = e.target.value;
+                        setForm((f) => ({ ...f, trelloBoardId: boardId, trelloListId: "" }));
+                        setTrelloLists([]);
+                        if (boardId) {
+                          try {
+                            const l = await widgetConfigApi.trelloLists(id, boardId);
+                            setTrelloLists(l.data || []);
+                          } catch {
+                            setTrelloLists([]);
+                          }
+                        }
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                    >
+                      <option value="">Select a board</option>
+                      {trelloBoards.map((b) => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-500">List (where bugs go)</label>
+                    <select
+                      value={form.trelloListId}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, trelloListId: e.target.value }))
+                      }
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                    >
+                      <option value="">Select a list</option>
+                      {trelloLists.map((l) => (
+                        <option key={l.id} value={l.id}>{l.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <label className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={form.sendToTrello}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, sendToTrello: e.target.checked }))
+                    }
+                    className="h-4 w-4 rounded border-slate-300"
+                  />
+                  <span className="text-sm">Send new bug reports to Trello</span>
+                </label>
               </div>
             )}
           </div>
