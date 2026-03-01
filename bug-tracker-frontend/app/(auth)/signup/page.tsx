@@ -120,7 +120,7 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary mt-12 w-full py-3.5"
+            className="btn-primary mt-4 w-full py-3.5"
           >
             {loading ? "Creating account…" : "Create account"}
           </button>
