@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, trim: true, lowercase: true },
     password: { type: String, required: false, default: null },
     googleId: { type: String, required: false, sparse: true, unique: true },
+    plan: { type: String, enum: ["free", "pro", "team"], default: "free" },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },

@@ -3,6 +3,8 @@ const router = express.Router();
 const rateLimit = require("express-rate-limit");
 const BugReport = require("../models/BugReport");
 const WidgetConfig = require("../models/WidgetConfig");
+const User = require("../models/User");
+const { getLimits } = require("../config/plans");
 const { sendToSlack } = require("../services/slack");
 const { createTrelloCard } = require("../services/trello");
 
@@ -32,6 +34,24 @@ router.post("/", submitLimiter, async (req, res) => {
     });
     if (!config) {
       return res.status(400).json({ error: "Invalid widget" });
+    }
+
+    const owner = await User.findById(config.userId).select("plan").lean();
+    const plan = (owner && owner.plan) || "free";
+    const limits = getLimits(plan);
+    const startOfMonth = new Date();
+    startOfMonth.setUTCDate(1);
+    startOfMonth.setUTCHours(0, 0, 0, 0);
+    const widgetIds = await WidgetConfig.distinct("widgetId", { userId: config.userId });
+    const reportsThisMonth = await BugReport.countDocuments({
+      widgetId: { $in: widgetIds },
+      createdAt: { $gte: startOfMonth },
+    });
+    if (reportsThisMonth >= limits.reportsPerMonth) {
+      return res.status(402).json({
+        error: "Report limit reached for this account this month. The site owner can upgrade for more.",
+        code: "REPORT_LIMIT",
+      });
     }
 
     const ipAddress = req.ip || req.connection?.remoteAddress;

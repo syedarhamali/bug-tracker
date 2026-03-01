@@ -4,6 +4,7 @@ const axios = require("axios");
 const WidgetConfig = require("../models/WidgetConfig");
 const BugReport = require("../models/BugReport");
 const auth = require("../middleware/auth");
+const { getLimits } = require("../config/plans");
 const TRELLO_KEY = process.env.TRELLO_API_KEY;
 
 router.get("/", auth, async (req, res) => {
@@ -20,6 +21,16 @@ router.post("/", auth, async (req, res) => {
     const { name, domain } = req.body;
     if (!name || !domain) {
       return res.status(400).json({ error: "Name and domain are required" });
+    }
+    const plan = req.user.plan || "free";
+    const limits = getLimits(plan);
+    const count = await WidgetConfig.countDocuments({ userId: req.user._id });
+    if (count >= limits.widgets) {
+      return res.status(402).json({
+        error: "Widget limit reached for your plan. Upgrade to add more widgets.",
+        code: "WIDGET_LIMIT",
+        limit: limits.widgets,
+      });
     }
     const config = new WidgetConfig({
       name,
