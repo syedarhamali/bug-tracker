@@ -62,6 +62,7 @@ export interface BugReport {
   title: string;
   description: string;
   email: string | null;
+  mediaUrl: string | null;
   pageUrl: string | null;
   status: string;
   createdAt: string;

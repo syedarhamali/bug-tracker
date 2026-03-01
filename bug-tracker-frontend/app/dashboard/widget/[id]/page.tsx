@@ -413,6 +413,18 @@ export default function WidgetConfigPage() {
                 >
                   <p className="font-medium text-slate-900 dark:text-slate-100">{r.title}</p>
                   <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-400">{r.description}</p>
+                  {r.mediaUrl && (
+                    <p className="mt-2">
+                      <a
+                        href={r.mediaUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+                      >
+                        View screenshot/video
+                      </a>
+                    </p>
+                  )}
                   <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
                     {r.pageUrl} · {new Date(r.createdAt).toLocaleString()}
                   </p>
