@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/lib/api";
@@ -8,7 +8,7 @@ import { authApi } from "@/lib/api";
 const inputClass =
   "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 transition dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-100 dark:placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:focus:border-blue-400";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -125,5 +125,24 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full max-w-md animate-pulse rounded-2xl border border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900/80">
+          <div className="h-24 rounded-t-2xl bg-slate-100 dark:bg-slate-800/50" />
+          <div className="space-y-6 p-8">
+            <div className="h-12 rounded-xl bg-slate-100 dark:bg-slate-800/50" />
+            <div className="h-12 rounded-xl bg-slate-100 dark:bg-slate-800/50" />
+            <div className="h-12 rounded-xl bg-slate-200 dark:bg-slate-700" />
+          </div>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
