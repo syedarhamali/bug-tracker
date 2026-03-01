@@ -20,6 +20,7 @@ export default function WidgetConfigPage() {
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [form, setForm] = useState({
+    visible: true,
     sendToSlack: false,
     slackWebhookUrl: "",
     sendToTrello: false,
@@ -41,6 +42,7 @@ export default function WidgetConfigPage() {
         const c = await widgetConfigApi.get(id);
         setConfig(c);
         setForm({
+          visible: c.visible !== false,
           sendToSlack: c.sendToSlack,
           slackWebhookUrl: c.slackWebhookUrl || "",
           sendToTrello: c.sendToTrello,
@@ -76,7 +78,8 @@ export default function WidgetConfigPage() {
     setSaving(true);
     setMsg(null);
     try {
-      await widgetConfigApi.update(config._id, {
+      const updated = await widgetConfigApi.update(config._id, {
+        visible: form.visible,
         sendToSlack: form.sendToSlack,
         slackWebhookUrl: form.slackWebhookUrl || null,
         sendToTrello: form.sendToTrello,
@@ -85,6 +88,7 @@ export default function WidgetConfigPage() {
         trelloListId: form.trelloListId || null,
         trelloBoardId: form.trelloBoardId || null,
       });
+      setConfig(updated);
       setMsg({ type: "ok", text: "Settings saved." });
     } catch (e) {
       setMsg({ type: "err", text: e instanceof Error ? e.message : "Save failed" });
@@ -181,6 +185,35 @@ export default function WidgetConfigPage() {
           >
             {copied ? "Copied!" : "Copy"}
           </button>
+        </div>
+      </section>
+
+      {/* Widget visibility */}
+      <section className="mb-8 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/50">
+        <div className="border-b border-slate-100 bg-slate-50/80 px-6 py-4 dark:border-slate-800 dark:bg-slate-800/30">
+          <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-slate-100">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-700">
+              <svg className="h-4 w-4 text-slate-600 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+            </span>
+            Widget visibility
+          </h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Show or hide the bug report button on sites where the widget is embedded.
+          </p>
+        </div>
+        <div className="p-6">
+          <label className="flex cursor-pointer items-center gap-3">
+            <input
+              type="checkbox"
+              checked={form.visible}
+              onChange={(e) => setForm((f) => ({ ...f, visible: e.target.checked }))}
+              className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500 dark:border-slate-600 dark:text-slate-100"
+            />
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Show widget on site</span>
+          </label>
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            When off, the button is hidden for all visitors. Reports are not accepted until you turn it back on.
+          </p>
         </div>
       </section>
 

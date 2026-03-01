@@ -104,6 +104,7 @@ router.patch("/:id", auth, async (req, res) => {
     if (typeof req.body.trelloToken !== "undefined") updates.trelloToken = req.body.trelloToken || null;
     if (typeof req.body.trelloListId !== "undefined") updates.trelloListId = req.body.trelloListId || null;
     if (typeof req.body.trelloBoardId !== "undefined") updates.trelloBoardId = req.body.trelloBoardId || null;
+    if (typeof req.body.visible === "boolean") updates.visible = req.body.visible;
     if (req.body.name) updates.name = req.body.name;
     if (req.body.domain) updates.domain = req.body.domain.replace(/^https?:\/\//, "").split("/")[0];
 

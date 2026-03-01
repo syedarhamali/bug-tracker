@@ -43,6 +43,7 @@ export interface WidgetConfig {
   trelloToken: string | null;
   trelloListId: string | null;
   trelloBoardId?: string | null;
+  visible?: boolean;
   createdAt: string;
   updatedAt: string;
 }

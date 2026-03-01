@@ -6,6 +6,18 @@
   var apiUrl = script.getAttribute("data-api-url") || (script.src ? script.src.replace(/\/widget\/script\.js.*$/, "") : "");
   if (!widgetId || !apiUrl) return;
 
+  (function checkVisibilityThenInit() {
+    var visibilityUrl = apiUrl + "/widget/visibility?widgetId=" + encodeURIComponent(widgetId);
+    fetch(visibilityUrl)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.visible === false) return;
+        initWidget();
+      })
+      .catch(function () { initWidget(); });
+  })();
+
+  function initWidget() {
   var style = document.createElement("style");
   style.textContent =
     "#bt-root{position:fixed;bottom:24px;right:24px;z-index:2147483647;font-family:system-ui,-apple-system,sans-serif;}" +
@@ -129,4 +141,5 @@
         submitBtn.disabled = false;
       });
   });
+  }
 })();
