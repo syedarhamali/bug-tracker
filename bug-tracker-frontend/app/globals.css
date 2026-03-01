@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
 }
 
 @theme inline {
@@ -14,13 +14,88 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #020617;
+    --foreground: #f1f5f9;
   }
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+input:focus, button:focus, select:focus, a:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Shared button styles – explicit color so link inheritance doesn’t hide CTA text */
+.btn-primary {
+  @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold shadow-lg shadow-slate-900/25 transition hover:bg-slate-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:shadow-slate-100/10 dark:hover:bg-slate-200;
+  color: #ffffff !important;
+}
+@media (prefers-color-scheme: dark) {
+  .btn-primary { color: #0f172a !important; }
+}
+.dark .btn-primary {
+  color: #0f172a !important;
+}
+
+.btn-secondary {
+  @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-5 py-3 text-sm font-semibold transition hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] dark:border-slate-600 dark:bg-slate-900 dark:hover:border-slate-500 dark:hover:bg-slate-800;
+  color: #1e293b !important;
+}
+@media (prefers-color-scheme: dark) {
+  .btn-secondary { color: #f1f5f9 !important; }
+}
+.dark .btn-secondary {
+  color: #f1f5f9 !important;
+}
+
+.btn-ghost {
+  @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition hover:bg-slate-100 dark:hover:bg-slate-800;
+  color: #475569 !important;
+}
+@media (prefers-color-scheme: dark) {
+  .btn-ghost { color: #94a3b8 !important; }
+}
+.btn-ghost:hover {
+  color: #0f172a !important;
+}
+@media (prefers-color-scheme: dark) {
+  .btn-ghost:hover { color: #f1f5f9 !important; }
+}
+.dark .btn-ghost { color: #94a3b8 !important; }
+.dark .btn-ghost:hover { color: #f1f5f9 !important; }
+
+/* Bottom CTA block – force visible text on dark background */
+.cta-block-primary {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+}
+.cta-block-primary:hover {
+  background-color: #f1f5f9 !important;
+}
+.cta-block-primary span,
+.cta-block-primary svg {
+  color: inherit;
+}
+.cta-block-secondary {
+  color: #ffffff !important;
+  border: 2px solid rgba(248, 250, 252, 0.6);
+  background-color: transparent;
+}
+.cta-block-secondary:hover {
+  border-color: #f8fafc;
+  background-color: rgba(248, 250, 252, 0.12);
+  color: #ffffff !important;
 }

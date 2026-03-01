@@ -79,6 +79,14 @@ export const authApi = {
       body: JSON.stringify(data),
       token: null,
     }),
+  me: (token: string) =>
+    api<User>("/auth/me", { token }),
+
+  /** Redirect to backend Google OAuth; returnTo is "login" or "signup". */
+  getGoogleAuthUrl: (returnTo: "login" | "signup") => {
+    const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    return `${base}/auth/google?returnTo=${returnTo}`;
+  },
 };
 
 export const widgetConfigApi = {

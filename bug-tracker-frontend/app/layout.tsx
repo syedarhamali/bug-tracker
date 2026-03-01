@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bug Tracker Widget",
-  description: "Embeddable bug report widget with Slack and Trello integration",
+  title: "Bug Tracker — Catch bugs where they happen",
+  description: "Add a bug report widget to any site in 30 seconds. Reports go straight to Slack or Trello. One script, no new tools.",
 };
 
 export default function RootLayout({
