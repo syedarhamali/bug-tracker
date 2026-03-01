@@ -70,12 +70,32 @@ router.post("/login", async (req, res) => {
 router.get("/me", auth, async (req, res) => {
   try {
     const user = req.user;
+    const plan = user.plan || "free";
+    const limits = require("../config/plans").getLimits(plan);
+    const widgetsCount = await require("../models/WidgetConfig").countDocuments({ userId: user._id });
+    const startOfMonth = new Date();
+    startOfMonth.setUTCDate(1);
+    startOfMonth.setUTCHours(0, 0, 0, 0);
+    const widgetIds = await require("../models/WidgetConfig").distinct("widgetId", { userId: user._id });
+    const reportsThisMonth = widgetIds.length
+      ? await require("../models/BugReport").countDocuments({
+          widgetId: { $in: widgetIds },
+          createdAt: { $gte: startOfMonth },
+        })
+      : 0;
     res.json({
       id: user._id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
       hasPassword: !!user.password,
+      plan,
+      usage: {
+        widgets: widgetsCount,
+        widgetsLimit: limits.widgets,
+        reportsThisMonth,
+        reportsPerMonthLimit: limits.reportsPerMonth,
+      },
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

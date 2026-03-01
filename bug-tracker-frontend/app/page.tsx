@@ -21,16 +21,13 @@ export default function MarketingPage() {
             <span className="text-lg font-bold tracking-tight">Bug Tracker</span>
           </Link>
           <nav className="flex items-center gap-3" aria-label="Main">
-            <Link
-              href="/login"
-              className="btn-ghost shrink-0 py-2.5"
-            >
+            <Link href="/pricing" className="btn-ghost shrink-0 py-2.5">
+              Pricing
+            </Link>
+            <Link href="/login" className="btn-ghost shrink-0 py-2.5">
               Sign in
             </Link>
-            <Link
-              href="/signup"
-              className="btn-primary shrink-0 py-2.5"
-            >
+            <Link href="/signup" className="btn-primary shrink-0 py-2.5">
               Create account
             </Link>
           </nav>
@@ -238,6 +235,7 @@ export default function MarketingPage() {
             <span className="font-semibold">Bug Tracker</span>
           </Link>
           <div className="flex items-center gap-6 text-sm text-slate-500 dark:text-slate-400">
+            <Link href="/pricing" className="hover:text-slate-900 dark:hover:text-slate-100">Pricing</Link>
             <Link href="/login" className="hover:text-slate-900 dark:hover:text-slate-100">Sign in</Link>
             <Link href="/signup" className="hover:text-slate-900 dark:hover:text-slate-100">Create account</Link>
           </div>

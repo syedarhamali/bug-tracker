@@ -125,17 +125,19 @@ export default function SignupPage() {
             {loading ? "Creating account…" : "Create account"}
           </button>
 
-          <div className="relative my-8">
-            <span className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-slate-200 dark:border-slate-700" />
+          <div className="relative my-10">
+            <span className="absolute inset-0 flex items-center" aria-hidden>
+              <span className="w-full border-t-2 border-slate-200 dark:border-slate-600" />
             </span>
-            <span className="relative flex justify-center text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              Or continue with
+            <span className="relative z-10 flex justify-center">
+              <span className="rounded-full bg-slate-100 px-4 py-1.5 text-sm font-semibold uppercase tracking-wider text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                Or continue with
+              </span>
             </span>
           </div>
           <a
             href={authApi.getGoogleAuthUrl("signup")}
-            className="btn-secondary flex w-full items-center justify-center gap-3 py-3.5"
+            className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-slate-200 bg-white py-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] dark:border-slate-600 dark:bg-slate-800/50 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-800"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />

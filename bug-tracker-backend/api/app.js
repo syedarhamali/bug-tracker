@@ -8,6 +8,8 @@ const widgetConfigRoutes = require("../routes/widgetConfig");
 const bugReportRoutes = require("../routes/bug-report");
 const widgetRoutes = require("../routes/widget");
 const integrationsRoutes = require("../routes/integrations");
+const billingRoutes = require("../routes/billing");
+const lemonsqueezyWebhook = require("../routes/lemonsqueezy-webhook");
 
 dotenv.config();
 const app = express();
@@ -18,6 +20,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : ["http://localhost:3000", "http://127.0.0.1:3000"];
 
 app.use(morgan("combined"));
+app.use("/webhooks/lemonsqueezy", express.raw({ type: "application/json" }), lemonsqueezyWebhook);
 app.use(express.json({ limit: "1mb" }));
 app.use(
   cors({
@@ -34,6 +37,7 @@ connectDB();
 app.get("/", (req, res) => res.json({ message: "Bug Tracker API running" }));
 
 app.use("/auth", authRoutes);
+app.use("/billing", billingRoutes);
 app.use("/widget-config", widgetConfigRoutes);
 app.use("/integrations", integrationsRoutes);
 app.use("/bug-report", bugReportRoutes);

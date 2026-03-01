@@ -27,6 +27,13 @@ export interface User {
   lastName: string;
   email: string;
   hasPassword?: boolean;
+  plan?: "free" | "pro" | "team";
+  usage?: {
+    widgets: number;
+    widgetsLimit: number;
+    reportsThisMonth: number;
+    reportsPerMonthLimit: number;
+  };
 }
 
 export interface WidgetConfig {
@@ -100,6 +107,15 @@ export const authApi = {
     const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
     return `${base}/auth/google?returnTo=${returnTo}`;
   },
+};
+
+export const billingApi = {
+  /** Create Lemon Squeezy checkout for recurring plan. Returns { url } to redirect. */
+  createCheckout: (plan: "pro" | "team") =>
+    api<{ url: string }>("/billing/checkout", {
+      method: "POST",
+      body: JSON.stringify({ plan }),
+    }),
 };
 
 export const widgetConfigApi = {

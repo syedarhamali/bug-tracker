@@ -2,23 +2,27 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { widgetConfigApi, type WidgetConfig } from "@/lib/api";
+import { widgetConfigApi, authApi, type WidgetConfig, type User } from "@/lib/api";
 
 export default function DashboardPage() {
   const [widgets, setWidgets] = useState<WidgetConfig[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [addName, setAddName] = useState("");
   const [addDomain, setAddDomain] = useState("");
   const [addError, setAddError] = useState("");
   const [addLoading, setAddLoading] = useState(false);
+  const [upgradedBanner, setUpgradedBanner] = useState(false);
 
   async function load() {
     try {
-      const { data } = await widgetConfigApi.list();
-      setWidgets(data);
+      const [listRes, meRes] = await Promise.all([widgetConfigApi.list(), authApi.me()]);
+      setWidgets(listRes.data);
+      setUser(meRes);
     } catch {
       setWidgets([]);
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -26,6 +30,15 @@ export default function DashboardPage() {
 
   useEffect(() => {
     load();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("upgraded") === "1") {
+      setUpgradedBanner(true);
+      load();
+    }
   }, []);
 
   async function handleAdd(e: React.FormEvent) {
@@ -50,6 +63,39 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-[60vh]">
+      {upgradedBanner && (
+        <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200">
+          Your plan has been upgraded. You now have access to your new limits.
+        </div>
+      )}
+      {/* Usage & plan card */}
+      {user?.usage && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white px-6 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/50">
+          <div className="flex flex-wrap items-center gap-6">
+            <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-medium capitalize text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              {user.plan || "Free"} plan
+            </span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">
+              Widgets: <strong>{user.usage.widgets}</strong> / {user.usage.widgetsLimit}
+            </span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">
+              Reports this month: <strong>{user.usage.reportsThisMonth}</strong> / {user.usage.reportsPerMonthLimit}
+            </span>
+          </div>
+          {(user.plan === "free" || !user.plan) && (
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+            >
+              Upgrade
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l8 8m0 0l-8 8m8-8H3" />
+              </svg>
+            </Link>
+          )}
+        </div>
+      )}
+
       {/* Page header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
