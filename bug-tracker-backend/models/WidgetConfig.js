@@ -15,6 +15,7 @@ const widgetConfigSchema = new mongoose.Schema(
     trelloToken: { type: String, default: null },
     trelloListId: { type: String, default: null },
     trelloBoardId: { type: String, default: null },
+    visible: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },
