@@ -75,7 +75,50 @@ router.get("/me", auth, async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      hasPassword: !!user.password,
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.patch("/me", auth, async (req, res) => {
+  try {
+    const user = req.user;
+    const { firstName, lastName } = req.body;
+    if (firstName !== undefined) user.firstName = String(firstName).trim();
+    if (lastName !== undefined) user.lastName = String(lastName).trim();
+    await user.save();
+    res.json({
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      hasPassword: !!user.password,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.patch("/password", auth, async (req, res) => {
+  try {
+    const user = req.user;
+    const { currentPassword, newPassword } = req.body;
+    if (!user.password) {
+      return res.status(400).json({ error: "Account uses Google sign-in. Set a password below to also sign in with email." });
+    }
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Current password and new password are required" });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: "New password must be at least 6 characters" });
+    }
+    const valid = await bcrypt.compare(currentPassword, user.password);
+    if (!valid) return res.status(400).json({ error: "Current password is incorrect" });
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+    res.json({ message: "Password updated" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

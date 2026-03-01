@@ -26,6 +26,7 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
+  hasPassword?: boolean;
 }
 
 export interface WidgetConfig {
@@ -79,8 +80,20 @@ export const authApi = {
       body: JSON.stringify(data),
       token: null,
     }),
-  me: (token: string) =>
-    api<User>("/auth/me", { token }),
+  me: (token?: string | null) =>
+    api<User>("/auth/me", { token: token ?? getToken() }),
+
+  updateProfile: (data: { firstName?: string; lastName?: string }) =>
+    api<User>("/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api<{ message: string }>("/auth/password", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
 
   /** Redirect to backend Google OAuth; returnTo is "login" or "signup". */
   getGoogleAuthUrl: (returnTo: "login" | "signup") => {

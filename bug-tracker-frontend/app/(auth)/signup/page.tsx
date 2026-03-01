@@ -58,7 +58,7 @@ export default function SignupPage() {
               {error}
             </div>
           )}
-          <div className="space-y-6 mb-4">
+          <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
