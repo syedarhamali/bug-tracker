@@ -9,6 +9,7 @@ async function createTrelloCard(apiKey, token, listId, payload) {
     `**Description:**\n${payload.description || "N/A"}`,
     `**Page URL:** ${payload.pageUrl || "N/A"}`,
     `**Email:** ${payload.email || "N/A"}`,
+    payload.mediaUrl ? `**Screenshot/Video:** ${payload.mediaUrl}` : "",
     `**User Agent:** ${payload.userAgent || "N/A"}`,
     payload.extraData && Object.keys(payload.extraData).length
       ? `**Extra data:**\n\`\`\`\n${JSON.stringify(payload.extraData, null, 2)}\n\`\`\``
